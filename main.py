@@ -49,8 +49,10 @@ user_data = {}
 # Кнопки меню
 def main_keyboard():
     buttons = [types.KeyboardButton(text=section) for section in sections]
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    keyboard.add(*buttons)
+    keyboard = types.ReplyKeyboardMarkup(
+        keyboard=[[button] for button in buttons],
+        resize_keyboard=True
+    )
     return keyboard
 
 @dp.message(F.text.in_(sections.keys()))
