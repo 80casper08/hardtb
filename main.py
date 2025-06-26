@@ -73,7 +73,16 @@ async def send_question(message_or_callback, state: FSMContext):
                 correct += 1
         percent = round(correct / len(questions) * 100)
         result = f"✅ Правильних відповідей: {correct} з {len(questions)} ({percent}%)"
-        await message_or_callback.answer(result, reply_markup=main_keyboard())
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🔁 Пройти ще раз", callback_data="restart")]
+        ])
+
+        if isinstance(message_or_callback, CallbackQuery):
+            await message_or_callback.message.answer(result, reply_markup=keyboard)
+        else:
+            await message_or_callback.answer(result, reply_markup=keyboard)
+
         await state.clear()
         return
 
@@ -119,6 +128,11 @@ async def confirm_answer(callback: CallbackQuery, state: FSMContext):
         temp_selected=set()
     )
     await send_question(callback, state)
+
+@dp.callback_query(F.data == "restart")
+async def restart_quiz(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await callback.message.answer("Вибери розділ для тесту:", reply_markup=main_keyboard())
 
 @dp.message(F.text == "/start")
 async def cmd_start(message: types.Message):
