@@ -19,16 +19,13 @@ TOKEN = os.getenv("TOKEN")
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
-# Flask сервер для підтримки Render
+# Flask сервер для Render
 app = Flask(__name__)
 @app.route("/")
 def home():
     return "Bot is running!"
 
-def run_web():
-    app.run(host="0.0.0.0", port=8080)
-
-Thread(target=run_web).start()
+Thread(target=lambda: app.run(host="0.0.0.0", port=8080)).start()
 
 # FSM стани
 class QuizState(StatesGroup):
@@ -62,17 +59,21 @@ async def start_quiz(message: types.Message, state: FSMContext):
     await state.update_data(category=category, question_index=0, selected_options=[])
     await send_question(message, state)
 
-async def send_question(message, state: FSMContext):
+async def send_question(message_or_callback, state: FSMContext):
     data = await state.get_data()
     questions = sections[data["category"]]
     index = data["question_index"]
 
     if index >= len(questions):
-        correct = sum(1 for q, s in zip(questions, data["selected_options"])
-                      if set(s) == {i for i, (_, is_correct) in enumerate(q["options"]) if is_correct})
+        correct = 0
+        for i, q in enumerate(questions):
+            correct_answers = {j for j, (_, is_correct) in enumerate(q["options"]) if is_correct}
+            user_selected = set(data["selected_options"][i])
+            if correct_answers == user_selected:
+                correct += 1
         percent = round(correct / len(questions) * 100)
         result = f"✅ Правильних відповідей: {correct} з {len(questions)} ({percent}%)"
-        await message.answer(result, reply_markup=main_keyboard())
+        await message_or_callback.answer(result, reply_markup=main_keyboard())
         await state.clear()
         return
 
@@ -81,22 +82,43 @@ async def send_question(message, state: FSMContext):
     options = list(enumerate(question["options"]))
     random.shuffle(options)
 
-    buttons = [
-        [InlineKeyboardButton(text=opt[1][0], callback_data=f"{opt[0]}")]
-        for opt in options
-    ]
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-    await message.answer(text, reply_markup=keyboard)
+    selected = data.get("temp_selected", set())
+    buttons = []
+    for i, (label, _) in options:
+        prefix = "✅ " if i in selected else "▫️ "
+        buttons.append([InlineKeyboardButton(text=prefix + label, callback_data=f"opt_{i}")])
+    buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data="confirm")])
 
-@dp.callback_query(F.data)
-async def handle_answer(callback: CallbackQuery, state: FSMContext):
-    answer_index = int(callback.data)
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    if isinstance(message_or_callback, CallbackQuery):
+        await message_or_callback.message.edit_text(text, reply_markup=keyboard)
+    else:
+        await message_or_callback.answer(text, reply_markup=keyboard)
+
+@dp.callback_query(F.data.startswith("opt_"))
+async def toggle_option(callback: CallbackQuery, state: FSMContext):
+    index = int(callback.data.split("_")[1])
     data = await state.get_data()
-    selected = data.get("selected_options", [])
-    selected.append([answer_index])
-    await state.update_data(selected_options=selected, question_index=data["question_index"] + 1)
-    await callback.answer()
-    await send_question(callback.message, state)
+    selected = data.get("temp_selected", set())
+    if index in selected:
+        selected.remove(index)
+    else:
+        selected.add(index)
+    await state.update_data(temp_selected=selected)
+    await send_question(callback, state)
+
+@dp.callback_query(F.data == "confirm")
+async def confirm_answer(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = data.get("temp_selected", set())
+    selected_options = data.get("selected_options", [])
+    selected_options.append(list(selected))
+    await state.update_data(
+        selected_options=selected_options,
+        question_index=data["question_index"] + 1,
+        temp_selected=set()
+    )
+    await send_question(callback, state)
 
 @dp.message(F.text == "/start")
 async def cmd_start(message: types.Message):
