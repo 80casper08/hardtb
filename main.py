@@ -72,16 +72,30 @@ async def send_question(message_or_callback, state: FSMContext):
             if correct_answers == user_selected:
                 correct += 1
         percent = round(correct / len(questions) * 100)
-        result = f"✅ Правильних відповідей: {correct} з {len(questions)} ({percent}%)"
+
+        grade = "❌ Погано"
+        if percent >= 90:
+            grade = "💯 Відмінно"
+        elif percent >= 70:
+            grade = "👍 Добре"
+        elif percent >= 50:
+            grade = "👌 Задовільно"
+
+        result = (
+            "📊 *Результат тесту:*\n\n"
+            f"✅ *Правильних відповідей:* {correct} з {len(questions)}\n"
+            f"📈 *Успішність:* {percent}%\n"
+            f"🏆 *Оцінка:* {grade}"
+        )
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="🔁 Пройти ще раз", callback_data="restart")]
         ])
 
         if isinstance(message_or_callback, CallbackQuery):
-            await message_or_callback.message.answer(result, reply_markup=keyboard)
+            await message_or_callback.message.answer(result, reply_markup=keyboard, parse_mode="Markdown")
         else:
-            await message_or_callback.answer(result, reply_markup=keyboard)
+            await message_or_callback.answer(result, reply_markup=keyboard, parse_mode="Markdown")
 
         await state.clear()
         return
@@ -144,3 +158,5 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+
