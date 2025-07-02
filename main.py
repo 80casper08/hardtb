@@ -20,12 +20,19 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
 # Flask сервер для Render
+# Flask сервер для Render
 app = Flask(__name__)
+
 @app.route("/")
 def home():
     return "Bot is running!"
 
+@app.route("/ping")
+def ping():
+    return "OK", 200
+
 Thread(target=lambda: app.run(host="0.0.0.0", port=8080)).start()
+
 
 # FSM стани
 class QuizState(StatesGroup):
