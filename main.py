@@ -19,7 +19,7 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
 # 🔐 Вкажи свій Telegram ID
-ADMIN_ID = 123456789  # ⬅️ Заміни на свій ID
+ADMIN_ID = 710633503  # ⬅️ Заміни на свій ID
 
 # Ініціалізація лог-файлу
 if not os.path.exists("logs.txt"):
