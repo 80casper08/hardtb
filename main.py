@@ -15,11 +15,17 @@ from questions import op_questions, general_questions, lean_questions, hard_ques
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 
-# Ініціалізація бота
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
-# Flask сервер для Render
+# 🔐 Вкажи свій Telegram ID
+ADMIN_ID = 123456789  # ⬅️ Заміни на свій ID
+
+# Ініціалізація лог-файлу
+if not os.path.exists("logs.txt"):
+    with open("logs.txt", "w", encoding="utf-8") as f:
+        f.write("FullName | Username | Дія\n")
+
 # Flask сервер для Render
 app = Flask(__name__)
 
@@ -32,7 +38,6 @@ def ping():
     return "OK", 200
 
 Thread(target=lambda: app.run(host="0.0.0.0", port=8080)).start()
-
 
 # FSM стани
 class QuizState(StatesGroup):
@@ -48,9 +53,6 @@ sections = {
     "💪 Hard Test": hard_questions,
 }
 
-user_data = {}
-
-# Кнопки меню
 def main_keyboard():
     buttons = [types.KeyboardButton(text=section) for section in sections]
     keyboard = types.ReplyKeyboardMarkup(
@@ -64,6 +66,19 @@ async def start_quiz(message: types.Message, state: FSMContext):
     category = message.text
     await state.set_state(QuizState.category)
     await state.update_data(category=category, question_index=0, selected_options=[])
+
+    # 🔍 Логування початку
+    full_name = message.from_user.full_name
+    username = message.from_user.username or "немає"
+
+    with open("logs.txt", "a", encoding="utf-8") as f:
+        f.write(f"{full_name} | @{username} | Почав тест {category}\n")
+
+    try:
+        await bot.send_message(ADMIN_ID, f"👤 {full_name} (@{username}) почав тест {category}")
+    except:
+        pass
+
     await send_question(message, state)
 
 async def send_question(message_or_callback, state: FSMContext):
@@ -94,6 +109,19 @@ async def send_question(message_or_callback, state: FSMContext):
             f"📈 *Успішність:* {percent}%\n"
             f"🏆 *Оцінка:* {grade}"
         )
+
+        # 🔍 Логування завершення
+        full_name = message_or_callback.from_user.full_name
+        username = message_or_callback.from_user.username or "немає"
+        category = data["category"]
+
+        with open("logs.txt", "a", encoding="utf-8") as f:
+            f.write(f"{full_name} | @{username} | Завершив тест {category} з результатом {correct}/{len(questions)} ({percent}%)\n")
+
+        try:
+            await bot.send_message(ADMIN_ID, f"✅ {full_name} (@{username}) завершив тест {category} з результатом {correct}/{len(questions)} ({percent}%)")
+        except:
+            pass
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="🔁 Пройти ще раз", callback_data="restart")]
@@ -159,11 +187,45 @@ async def restart_quiz(callback: CallbackQuery, state: FSMContext):
 async def cmd_start(message: types.Message):
     await message.answer("Вибери розділ для тесту:", reply_markup=main_keyboard())
 
+@dp.message(F.text == "/myid")
+async def get_my_id(message: types.Message):
+    await message.answer(f"👤 Твій Telegram ID: `{message.from_user.id}`", parse_mode="Markdown")
+
+@dp.message(F.text == "/users")
+async def list_users(message: types.Message):
+    if message.from_user.id != ADMIN_ID:
+        await message.answer("⛔️ Недостатньо прав.")
+        return
+
+    if not os.path.exists("logs.txt"):
+        await message.answer("📄 Логів ще немає.")
+        return
+
+    with open("logs.txt", "r", encoding="utf-8") as f:
+        lines = f.readlines()[1:]
+
+    users = set()
+    for line in lines:
+        parts = line.strip().split(" | ")
+        if len(parts) >= 2:
+            name = parts[0]
+            username = parts[1]
+            users.add(f"{name} {username}")
+
+    if not users:
+        await message.answer("🙃 Користувачів ще немає.")
+        return
+
+    sorted_users = sorted(users)
+    text = "👥 *Користувачі, які проходили тести:*\n\n"
+    text += "\n".join(f"• {user}" for user in sorted_users)
+
+    await message.answer(text, parse_mode="Markdown")
+
 # Запуск бота
 async def main():
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
-
 
