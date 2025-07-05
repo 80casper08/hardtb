@@ -2,10 +2,10 @@ import asyncio
 import os
 import random
 from aiogram import Bot, Dispatcher, types, F
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 from flask import Flask
 from threading import Thread
 from dotenv import load_dotenv
@@ -17,130 +17,213 @@ TOKEN = os.getenv("TOKEN")
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
+ADMIN_ID = 710633503
+
+if not os.path.exists("logs.txt"):
+    with open("logs.txt", "w", encoding="utf-8") as f:
+        f.write("FullName | Username | Дія\n")
+
 app = Flask(__name__)
 
 @app.route("/")
 def home():
     return "Bot is running!"
 
-def run_flask():
-    app.run(host="0.0.0.0", port=8080)
+@app.route("/ping")
+def ping():
+    return "OK", 200
 
-def keep_alive():
-    Thread(target=run_flask).start()
+Thread(target=lambda: app.run(host="0.0.0.0", port=8080)).start()
 
-class TestState(StatesGroup):
-    q_index = State()
-    score = State()
-    user_answers = State()
-    questions = State()
-    mode = State()
+class QuizState(StatesGroup):
+    category = State()
+    question_index = State()
+    selected_options = State()
 
-@dp.message(F.text.lower() == "/start")
-async def start_handler(message: types.Message, state: FSMContext):
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🦺 ОП", callback_data="test_op")],
-        [InlineKeyboardButton(text="📚 Загальні", callback_data="test_general")],
-        [InlineKeyboardButton(text="⚙️ LEAN", callback_data="test_lean")],
-        [InlineKeyboardButton(text="💪 Hard Test", callback_data="test_hard")],
-    ])
-    await message.answer("Обери розділ для проходження тесту:", reply_markup=kb)
+sections = {
+    "🦺 ОП": op_questions,
+    "📚 Загальні": general_questions,
+    "⚙️ LEAN": lean_questions,
+    "💪 Hard Test": hard_questions,
+}
 
-@dp.callback_query(F.data.startswith("test_"))
-async def start_test(callback: CallbackQuery, state: FSMContext):
-    mode = callback.data.replace("test_", "")
-    questions_map = {
-        "op": op_questions,
-        "general": general_questions,
-        "lean": lean_questions,
-        "hard": hard_questions
-    }
-    questions = questions_map.get(mode, [])
-    if not questions:
-        await callback.message.answer("⚠️ Питання не знайдено для цього розділу.")
-        return
-    await state.set_state(TestState.q_index)
-    await state.update_data(q_index=0, score=0, user_answers={}, questions=questions, mode=mode)
-    await callback.message.answer(f"✅ Розпочинаємо тест: {mode.upper()}")
-    await send_question(callback.message, questions[0], 0, mode)
+def main_keyboard():
+    buttons = [types.KeyboardButton(text=section) for section in sections]
+    keyboard = types.ReplyKeyboardMarkup(
+        keyboard=[[button] for button in buttons],
+        resize_keyboard=True
+    )
+    return keyboard
 
-async def send_question(message: types.Message, question: dict, index: int, mode: str):
+@dp.message(F.text.in_(sections.keys()))
+async def start_quiz(message: types.Message, state: FSMContext):
+    category = message.text
+    await state.set_state(QuizState.category)
+    await state.update_data(category=category, question_index=0, selected_options=[])
+
+    full_name = message.from_user.full_name
+    username = message.from_user.username or "немає"
+
+    with open("logs.txt", "a", encoding="utf-8") as f:
+        f.write(f"{full_name} | @{username} | Почав тест {category}\n")
+
     try:
-        text = f"<b>{index+1}. {question['question']}</b>"
-        options = list(enumerate(question["answers"]))
-        random.shuffle(options)
-        buttons = [
-            [InlineKeyboardButton(text=opt[1], callback_data=f"select_{mode}_{index}_{opt[0]}")]
-            for opt in options
-        ]
-        buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data=f"confirm_{mode}_{index}")])
-        await message.answer(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons), parse_mode="HTML")
-    except Exception as e:
-        await message.answer(f"⚠️ Помилка при показі питання: {e}")
+        await bot.send_message(ADMIN_ID, f"👤 {full_name} (@{username}) почав тест {category}")
+    except:
+        pass
 
-@dp.callback_query(F.data.startswith("select_"))
-async def handle_selection(callback: CallbackQuery, state: FSMContext):
-    parts = callback.data.split("_")
-    mode, q_index, ans_index = parts[1], int(parts[2]), int(parts[3])
+    await send_question(message, state)
+
+async def send_question(message_or_callback, state: FSMContext):
     data = await state.get_data()
-    user_answers = data.get("user_answers", {})
-    selected = set(user_answers.get(q_index, []))
-    selected ^= {ans_index}
-    user_answers[q_index] = list(selected)
-    await state.update_data(user_answers=user_answers)
-    await callback.answer("✅ Вибір оновлено")
+    questions = sections[data["category"]]
+    index = data["question_index"]
 
-@dp.callback_query(F.data.startswith("confirm_"))
-async def handle_confirm(callback: CallbackQuery, state: FSMContext):
-    parts = callback.data.split("_")
-    mode, q_index = parts[1], int(parts[2])
-    data = await state.get_data()
-    questions = data["questions"]
-    user_answers = data["user_answers"]
-    selected = set(user_answers.get(q_index, []))
-    correct = set(questions[q_index]["correct"])
+    if index >= len(questions):
+        correct = 0
+        explanations = ""
+        for i, q in enumerate(questions):
+            correct_answers = {j for j, (_, is_correct) in enumerate(q["options"]) if is_correct}
+            user_selected = set(data["selected_options"][i])
+            if correct_answers == user_selected:
+                correct += 1
+            else:
+                explanations += f"\n❌ *{q['text']}*\n"
+                for idx, (opt_text, _) in enumerate(q["options"]):
+                    mark = "☑️" if idx in user_selected else "🔘"
+                    explanations += f"{mark} {opt_text}\n"
+                correct_list = [txt for txt, is_ok in q["options"] if is_ok]
+                selected_list = [q["options"][idx][0] for idx in user_selected] if user_selected else ["—"]
+                explanations += f"_Твоя відповідь:_ {', '.join(selected_list)}\n"
+                explanations += f"_Правильна відповідь:_ {', '.join(correct_list)}\n"
 
-    score = data.get("score", 0)
-    if selected == correct:
-        score += 1
-    await state.update_data(score=score)
+        percent = round(correct / len(questions) * 100)
 
-    q_index += 1
-    if q_index < len(questions):
-        await state.update_data(q_index=q_index)
-        await send_question(callback.message, questions[q_index], q_index, mode)
-    else:
-        total = len(questions)
-        percent = round(score / total * 100)
-        await callback.message.answer(f"📊 Тест завершено!\nТвій результат: {percent}% ({score} з {total})")
-        await send_test_result_with_errors(callback.message, state)
+        grade = "❌ Погано"
+        if percent >= 90:
+            grade = "💯 Відмінно"
+        elif percent >= 70:
+            grade = "👍 Добре"
+        elif percent >= 50:
+            grade = "👌 Задовільно"
+
+        result = (
+            "📊 *Результат тесту:*\n\n"
+            f"✅ *Правильних відповідей:* {correct} з {len(questions)}\n"
+            f"📈 *Успішність:* {percent}%\n"
+            f"🏆 *Оцінка:* {grade}\n\n"
+            f"{explanations if explanations else '✅ Усі відповіді правильні!'}"
+        )
+
+        full_name = message_or_callback.from_user.full_name
+        username = message_or_callback.from_user.username or "немає"
+        category = data["category"]
+
+        with open("logs.txt", "a", encoding="utf-8") as f:
+            f.write(f"{full_name} | @{username} | Завершив тест {category} з результатом {correct}/{len(questions)} ({percent}%)\n")
+
+        try:
+            await bot.send_message(ADMIN_ID, f"✅ {full_name} (@{username}) завершив тест {category} з результатом {correct}/{len(questions)} ({percent}%)")
+        except:
+            pass
+
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🔁 Пройти ще раз", callback_data="restart")]
+        ])
+
+        if isinstance(message_or_callback, CallbackQuery):
+            await message_or_callback.message.answer(result, reply_markup=keyboard, parse_mode="Markdown")
+        else:
+            await message_or_callback.answer(result, reply_markup=keyboard, parse_mode="Markdown")
+
         await state.clear()
+        return
 
-async def send_test_result_with_errors(message: types.Message, state: FSMContext):
-    data = await state.get_data()
-    questions = data["questions"]
-    user_answers = data["user_answers"]
-    wrongs = ""
+    question = questions[index]
+    text = question["text"]
+    options = list(enumerate(question["options"]))
+    random.shuffle(options)
 
-    for i, q in enumerate(questions):
-        correct = set(q["correct"])
-        selected = set(user_answers.get(i, []))
-        if selected != correct:
-            selected_answers = [q["answers"][idx] for idx in selected]
-            correct_answers = [q["answers"][idx] for idx in correct]
-            wrongs += f"\n❌ <b>{q['question']}</b>\n"
-            for idx, ans in enumerate(q["answers"]):
-                mark = "☑️" if idx in selected else "🔘"
-                wrongs += f"{mark} {ans}\n"
-            wrongs += f"<i>Твоя відповідь:</i> {', '.join(selected_answers) if selected_answers else '—'}\n"
-            wrongs += f"<i>Правильна відповідь:</i> {', '.join(correct_answers)}\n\n"
+    selected = data.get("temp_selected", set())
+    buttons = []
+    for i, (label, _) in options:
+        prefix = "✅ " if i in selected else "▫️ "
+        buttons.append([InlineKeyboardButton(text=prefix + label, callback_data=f"opt_{i}")])
+    buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data="confirm")])
 
-    if wrongs:
-        await message.answer("<b>Помилки:</b>\n" + wrongs, parse_mode="HTML")
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+    if isinstance(message_or_callback, CallbackQuery):
+        await message_or_callback.message.edit_text(text, reply_markup=keyboard)
     else:
-        await message.answer("✅ Усі відповіді правильні!", parse_mode="HTML")
+        await message_or_callback.answer(text, reply_markup=keyboard)
 
-keep_alive()
+@dp.callback_query(F.data.startswith("opt_"))
+async def toggle_option(callback: CallbackQuery, state: FSMContext):
+    index = int(callback.data.split("_")[1])
+    data = await state.get_data()
+    selected = data.get("temp_selected", set())
+    if index in selected:
+        selected.remove(index)
+    else:
+        selected.add(index)
+    await state.update_data(temp_selected=selected)
+    await send_question(callback, state)
+
+@dp.callback_query(F.data == "confirm")
+async def confirm_answer(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = data.get("temp_selected", set())
+    selected_options = data.get("selected_options", [])
+    selected_options.append(list(selected))
+    await state.update_data(
+        selected_options=selected_options,
+        question_index=data["question_index"] + 1,
+        temp_selected=set()
+    )
+    await send_question(callback, state)
+
+@dp.callback_query(F.data == "restart")
+async def restart_quiz(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await callback.message.answer("Вибери розділ для тесту:", reply_markup=main_keyboard())
+
+@dp.message(F.text == "/start")
+async def cmd_start(message: types.Message):
+    await message.answer("Вибери розділ для тесту:", reply_markup=main_keyboard())
+
+@dp.message(F.text == "/myid")
+async def get_my_id(message: types.Message):
+    await message.answer(f"👤 Твій Telegram ID: `{message.from_user.id}`", parse_mode="Markdown")
+
+@dp.message(F.text == "/users")
+async def list_users(message: types.Message):
+    if message.from_user.id != ADMIN_ID:
+        await message.answer("⛔️ Недостатньо прав.")
+        return
+
+    if not os.path.exists("logs.txt"):
+        await message.answer("📄 Логів ще немає.")
+        return
+
+    with open("logs.txt", "r", encoding="utf-8") as f:
+        lines = f.readlines()[1:]
+
+    users = set()
+    for line in lines:
+        parts = line.strip().split(" | ")
+        if len(parts) >= 2:
+            name = parts[0]
+            username = parts[1]
+            users.add(f"{name} {username}")
+
+    if not users:
+        await message.answer("🙃 Користувачів ще немає.")
+        return
+
+    sorted_users = sorted(users)
+    text = "👥 *Користувачі, які проходили тести:*
+\n" + "\n".join(f"• {user}" for user in sorted_users)
+    await message.answer(text, parse_mode="Markdown")
 
 async def main():
     await dp.start_polling(bot)
