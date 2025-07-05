@@ -11,14 +11,11 @@ from threading import Thread
 from dotenv import load_dotenv
 from questions import op_questions, general_questions, lean_questions, hard_questions
 
-# Завантаження токена
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
-
-ADMIN_ID = 710633503
 
 app = Flask(__name__)
 
@@ -32,7 +29,6 @@ def run_flask():
 def keep_alive():
     Thread(target=run_flask).start()
 
-# FSM
 class TestState(StatesGroup):
     q_index = State()
     score = State()
@@ -40,18 +36,16 @@ class TestState(StatesGroup):
     questions = State()
     mode = State()
 
-# Старт-кнопки
 @dp.message(F.text.lower() == "/start")
 async def start_handler(message: types.Message, state: FSMContext):
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🦺 ОП", callback_data="test_op")],
         [InlineKeyboardButton(text="📚 Загальні", callback_data="test_general")],
-        [InlineKeyboardButton(text="⚙️ Lean", callback_data="test_lean")],
+        [InlineKeyboardButton(text="⚙️ LEAN", callback_data="test_lean")],
         [InlineKeyboardButton(text="💪 Hard Test", callback_data="test_hard")],
     ])
     await message.answer("Обери розділ для проходження тесту:", reply_markup=kb)
 
-# Старт тесту
 @dp.callback_query(F.data.startswith("test_"))
 async def start_test(callback: CallbackQuery, state: FSMContext):
     mode = callback.data.replace("test_", "")
@@ -61,25 +55,29 @@ async def start_test(callback: CallbackQuery, state: FSMContext):
         "lean": lean_questions,
         "hard": hard_questions
     }
-    questions = questions_map[mode]
+    questions = questions_map.get(mode, [])
+    if not questions:
+        await callback.message.answer("⚠️ Питання не знайдено для цього розділу.")
+        return
     await state.set_state(TestState.q_index)
     await state.update_data(q_index=0, score=0, user_answers={}, questions=questions, mode=mode)
     await callback.message.answer(f"✅ Розпочинаємо тест: {mode.upper()}")
     await send_question(callback.message, questions[0], 0, mode)
 
-# Надсилання питання
 async def send_question(message: types.Message, question: dict, index: int, mode: str):
-    text = f"<b>{index+1}. {question['question']}</b>"
-    options = list(enumerate(question["answers"]))
-    random.shuffle(options)
-    buttons = [
-        [InlineKeyboardButton(text=opt[1], callback_data=f"select_{mode}_{index}_{opt[0]}")]
-        for opt in options
-    ]
-    buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data=f"confirm_{mode}_{index}")])
-    await message.answer(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons), parse_mode="HTML")
+    try:
+        text = f"<b>{index+1}. {question['question']}</b>"
+        options = list(enumerate(question["answers"]))
+        random.shuffle(options)
+        buttons = [
+            [InlineKeyboardButton(text=opt[1], callback_data=f"select_{mode}_{index}_{opt[0]}")]
+            for opt in options
+        ]
+        buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data=f"confirm_{mode}_{index}")])
+        await message.answer(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons), parse_mode="HTML")
+    except Exception as e:
+        await message.answer(f"⚠️ Помилка при показі питання: {e}")
 
-# Обробка вибору
 @dp.callback_query(F.data.startswith("select_"))
 async def handle_selection(callback: CallbackQuery, state: FSMContext):
     parts = callback.data.split("_")
@@ -90,9 +88,8 @@ async def handle_selection(callback: CallbackQuery, state: FSMContext):
     selected ^= {ans_index}
     user_answers[q_index] = list(selected)
     await state.update_data(user_answers=user_answers)
-    await callback.answer("Вибір оновлено")
+    await callback.answer("✅ Вибір оновлено")
 
-# Підтвердження
 @dp.callback_query(F.data.startswith("confirm_"))
 async def handle_confirm(callback: CallbackQuery, state: FSMContext):
     parts = callback.data.split("_")
@@ -115,11 +112,10 @@ async def handle_confirm(callback: CallbackQuery, state: FSMContext):
     else:
         total = len(questions)
         percent = round(score / total * 100)
-        await callback.message.answer(f"🌟 Тест завершено!\nТвій результат: {percent}% ({score} з {total})")
+        await callback.message.answer(f"📊 Тест завершено!\nТвій результат: {percent}% ({score} з {total})")
         await send_test_result_with_errors(callback.message, state)
         await state.clear()
 
-# Вивід помилок
 async def send_test_result_with_errors(message: types.Message, state: FSMContext):
     data = await state.get_data()
     questions = data["questions"]
@@ -144,10 +140,8 @@ async def send_test_result_with_errors(message: types.Message, state: FSMContext
     else:
         await message.answer("✅ Усі відповіді правильні!", parse_mode="HTML")
 
-# Запуск Flask
 keep_alive()
 
-# Запуск бота
 async def main():
     await dp.start_polling(bot)
 
