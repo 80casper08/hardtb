@@ -221,8 +221,8 @@ async def list_users(message: types.Message):
         return
 
     sorted_users = sorted(users)
-    text = "👥 *Користувачі, які проходили тести:*
-\n" + "\n".join(f"• {user}" for user in sorted_users)
+    text = "👥 *Користувачі, які проходили тести:*\n"
+    text += "\n".join(f"• {user}" for user in sorted_users)
     await message.answer(text, parse_mode="Markdown")
 
 async def main():
@@ -230,4 +230,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
