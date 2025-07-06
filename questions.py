@@ -1009,91 +1009,91 @@ hard_questions = [
     {
         "text": "Який правильний QR-код для DoorProtect?",
         "options": [
-            ("DP – b032 w031", False),
-            ("DP – b011 w012", False),
-            ("DP – b682 w681", False),
-            ("DP – w011 b012", True),
+            ("DP – b 032 w 031", False),
+            ("DP – b 011 w 012", False),
+            ("DP – b 682 w 681", False),
+            ("DP – w 011 b 012", True),
         ]
     },
     {
         "text": "Який правильний QR-код для FireProtect Plus?",
         "options": [
             ("FP+ – b032 w031", False),
-            ("FP+ – b0a2 w0a1", False),
-            ("FP+ – w091 b092", True),
-            ("FP+ – b091 w092", False),
+            ("FP+ – b 031 w 032", False),
+            ("FP+ – w 091 b 092", True),
+            ("FP+ – b 091 w 092", False),
         ]
     },
     {
         "text": "Який правильний QR-код для ReX 2?",
         "options": [
-            ("RX2 – w461 b462", True),
-            ("RX2 – b0a2 w0a1", False),
-            ("RX2 – b461 w462", False),
-            ("RX2 – b6f2 w6f1", False),
+            ("RX2 – w 461 b 462", True),
+            ("RX2 – b 062 w 061", False),
+            ("RX2 – b 461 w 462", False),
+            ("RX2 – b 642 w 641", False),
         ]
     },
     {
         "text": "Який правильний QR-код для CombiProtect?",
         "options": [
-            ("CP – w081 b082", True),
-            ("CP – b081 w082", False),
-            ("CP – b022 w021", False),
-            ("CP – b0d2 w0d1", False),
+            ("CP – w 081 b 082", True),
+            ("CP – b 081 w 082", False),
+            ("CP – b 022 w 021", False),
+            ("CP – b 0d2 w 0d1", False),
         ]
     },
     {
         "text": "Який правильний QR-код для DPF.MBR?",
         "options": [
-            ("DPF – b082 w081", False),
-            ("DPF – b611 w612", False),
-            ("DPF – b142 w141", False),
-            ("DPF – w611 b612", True),
+            ("DPF – b 682 w 681", False),
+            ("DPF – b 611 w 612", False),
+            ("DPF – b 642 w 641", False),
+            ("DPF – w 611 b 612", True),
         ]
     },
     {
         "text": "Який правильний QR-код для HomeSiren Fibra?",
         "options": [
-            ("HSF – b751 w752", False),
-            ("HSF – b012 w011", False),
-            ("HSF – w751 b752", True),
-            ("HSF – b462 w461", False),
+            ("HSF – b 751 w752", False),
+            ("HSF – b 652 w 651", False),
+            ("HSF – w 751 b 752", True),
+            ("HSF – b 651 w 652", False),
         ]
     },
     {
         "text": "Який правильний QR-код для KeyPad?",
         "options": [
-            ("KP – b6f2 w6f1", False),
-            ("KP – b0a1 w0a2", False),
-            ("KP – b462 w461", False),
-            ("KP – w0a1 b0a2", True),
+            ("KP – b 6f2 w 6f1", False),
+            ("KP – b 0a1 w 0a2", False),
+            ("KP – b 462 w 461", False),
+            ("KP – w 0a1 b 0a2", True),
         ]
     },
     {
         "text": "Який правильний QR-код для FireProtect?",
         "options": [
-            ("FP – b092 w091", False),
-            ("FP – w031 b032", True),
-            ("FP – b031 w032", False),
-            ("FP – b682 w681", False),
+            ("FP – b 092 w 091", False),
+            ("FP – w 031 b 032", True),
+            ("FP – b 031 w 032", False),
+            ("FP – b 682 w 681", False),
         ]
     },
     {
         "text": "Який правильний QR-код для MotionCam?",
         "options": [
-            ("MC – b682 w681", False),
-            ("MC – w0d1 b0d2", True),
-            ("MC – b612 w611", False),
-            ("MC  – b0d1 w0d2", False),
+            ("MC – b 682 w 681", False),
+            ("MC – w 0d1 b 0d2", True),
+            ("MC – b 612 w 611", False),
+            ("MC  – b 0d1 w 0d2", False),
         ]
     },
     {
         "text": "Який правильний QR-код для KeyPad Fibra?",
         "options": [
-            ("KPF – b0a2 w0a1", False),
-            ("KPF – b062 w061", False),
-            ("KPF – w6a1 b6a2", True),
-            ("KPF – b6a1 w6a2", False),
+            ("KPF – b 0a2 w 0a1", False),
+            ("KPF – b 062 w 061", False),
+            ("KPF – w 6a1 b 6a2", True),
+            ("KPF – b 6a1 w 6a2", False),
         ]
     },
 ]
@@ -1101,91 +1101,91 @@ hard_questions += [
     {
         "text": "Який правильний QR-код для DPPF?",
         "options": [
-            ("DPPF – b612 w611", False),
-            ("DPPF – b0a2 w0a1", False),
-            ("DPPF – w6f1 b6f2", True),
-            ("DPPF – b6f1 w6f2", False),
+            ("DPPF – b 612 w 611", False),
+            ("DPPF – b 0a2 w 0a1", False),
+            ("DPPF – w 6f1 b 6f2", True),
+            ("DPPF – b 6f1 w 6f2", False),
         ]
     },
     {
         "text": "Який правильний QR-код для GlassProtect Fibra?",
         "options": [
-            ("GPF – b1b2 w1b1", False),
-            ("GPF – w641 b642", True),
-            ("GPF – b682 w681", False),
-            ("GPF – b462 w461", False),
+            ("GPF – b 1b2 w 1b1", False),
+            ("GPF – w 641 b 642", True),
+            ("GPF – b 682 w 681", False),
+            ("GPF – b 462 w 461", False),
         ]
     },
     {
         "text": "Який правильний QR-код для StreetSiren?",
         "options": [
-            ("SS – b062 w061", False),
-            ("SS – b142 w141", False),
-            ("SS – b642 w641", False),
-            ("SS – w141 b142", True),
+            ("SS – b 062 w 061", False),
+            ("SS – b 142 w 141", False),
+            ("SS – b 642 w 641", False),
+            ("SS – w 141 b 142", True),
         ]
     },
     {
         "text": "Який правильний QR-код для StreetSiren DoubleDeck?",
         "options": [
-            ("SSDD – b1b1 w1b2", False),
-            ("SSDD – b6d2 w6d1", False),
-            ("SSDD – b022 w021", False),
-            ("SSDD – w1b1 b1b2", True),
+            ("SSDD – b 1b1 w 1b2", False),
+            ("SSDD – b 6d2 w 6d1", False),
+            ("SSDD – b 022 w 021", False),
+            ("SSDD – w 1b1 b 1b2", True),
         ]
     },
     {
         "text": "Який правильний QR-код для MotionProtect?",
         "options": [
-            ("MP – b6d2 w6d1", False),
-            ("MP – b752 w751", False),
-            ("MP – b012 w011", False),
-            ("MP – w021 b022", True),
+            ("MP – b 6d2 w 6d1", False),
+            ("MP – b 752 w 751", False),
+            ("MP – b 012 w 011", False),
+            ("MP – w 021 b 022", True),
         ]
     },
     {
         "text": "Який правильний QR-код для MotionProtect Fibra?",
         "options": [
-            ("MPF – b6d2 w6d1", False),
-            ("MPF – b621 w622", False),
-            ("MPF – b062 w061", False),
-            ("MPF – w621 b622", True),
+            ("MPF – b 6d2 w 6d1", False),
+            ("MPF – b 621 w 622", False),
+            ("MPF – b 062 w 061", False),
+            ("MPF – w 621 b 622", True),
         ]
     },
     {
         "text": "Який правильний QR-код для CombiProtect Fibra?",
         "options": [
-            ("CP_F – b062 w061", False),
-            ("CP_F – b681 w682", False),
-            ("CP_F – b622 w621", False),
-            ("CP_F – w681 b682", True),
+            ("CP_F – b 062 w 061", False),
+            ("CP_F – b 681 w 682", False),
+            ("CP_F – b 622 w 621", False),
+            ("CP_F – w 681 b 682", True),
         ]
     },
     {
         "text": "Який правильний QR-код для MotionCam Fibra?",
         "options": [
-            ("MCP_F – b642 w641", False),
-            ("MCP_F – w6d1 b6d2", True),
-            ("MCP_F – b012 w011", False),
-            ("MCP_F – b082 w081", False),
+            ("MCP_F – b 642 w 641", False),
+            ("MCP_F – w 6d1 b 6d2", True),
+            ("MCP_F – b 012 w 011", False),
+            ("MCP_F – b 082 w 081", False),
         ]
     },
     {
         "text": "Який правильний QR-код для MPC_MBR?",
         "options": [
-            ("MPC – b061 w062", False),
-            ("MPC – b682 w681", False),
-            ("MPC – b612 w611", False),
-            ("MPC – w061 b062", True),
+            ("MPC – b 061 w 062", False),
+            ("MPC – b 682 w 681", False),
+            ("MPC – b 612 w 611", False),
+            ("MPC – w 061 b 062", True),
         ]
     },
     {
         "text": "Тип QR-коду для MPO_MBR:",
         "options": [
-            ("MPO – b131 w132", False),
-            ("MPO – b132 w131", False),
-            ("MPO – b0d2 w0d1", False),
-            ("MPO – bнемає w131", True),
+            ("MPO – b 131 w 132", False),
+            ("MPO – b 132 w 131", False),
+            ("MPO – b 0d2 w 0d1", False),
+            ("MPO – b немає w 131", True),
         ]
     },
 ]
@@ -1193,91 +1193,91 @@ hard_questions += [
     {
         "text": "Тип QR-коду для Transmitter:",
         "options": [
-            ("TRS – b062 w061", False),
-            ("TRS – b622 w621", False),
-            ("TRS – b112 w111", False),
-            ("TRS – b112 w немає", True),
+            ("TRS – b 062 w 061", False),
+            ("TRS – b 622 w 621", False),
+            ("TRS – b 112 w 111", False),
+            ("TRS – b 112 w немає", True),
         ]
     },
     {
         "text": "Тип QR-коду для Relay:",
         "options": [
-            ("RL – b122 w немає", True),
-            ("RL – b6d2 w6d1", False),
-            ("RL – b121 w122", False),
-            ("RL – b122 w121", False),
+            ("RL – b 122 w немає", True),
+            ("RL – b 6d2 w 6d1", False),
+            ("RL – b 121 w 122", False),
+            ("RL – b 122 w 121", False),
         ]
     },
     {
         "text": "Тип QR-коду для WallSwitch:",
         "options": [
-            ("WS – b1f2 w немає", True),
-            ("WS – b1f2 w1f1", False),
-            ("WS – b082 w081", False),
-            ("WS – b142 w141", False),
+            ("WS – b 1f2 w немає", True),
+            ("WS – b 1f2 w 1f1", False),
+            ("WS – b 082 w 081", False),
+            ("WS – b 142 w 141", False),
         ]
     },
     {
         "text": "Тип QR-коду для uartBridge:",
         "options": [
             ("UART – 6- ти значний", True),
-            ("UART – b622 w621", False),
-            ("UART – b112 w немає", False),
-            ("UART – b642 w641", False),
+            ("UART – b 622 w 621", False),
+            ("UART – b 112 w немає", False),
+            ("UART – b 642 w 641", False),
         ]
     },
     {
         "text": "Тип QR-коду для MCO_MBR:",
         "options": [
-            ("MCO – b642 w641", False),
-            ("MCO – bнемає w181", True),
+            ("MCO – b 182 w 181", False),
+            ("MCO – b немає w 181", True),
             ("MCO – b0d2 w0d1", False),
-            ("MCO – b181 w182", False),
+            ("MCO – b 181 w 182", False),
         ]
     },
     {
         "text": "Тип QR-коду для DCO_MBR:",
         "options": [
-            ("DCO – b0a2 w0a1", False),
-            ("DCO – b немає w1a1", True),
-            ("DCO – b622 w621", False),
-            ("DCO – b032 w031", False),
+            ("DCO – b 0a2 w 0a1", False),
+            ("DCO – b немає w 1a1", True),
+            ("DCO – b 622 w 621", False),
+            ("DCO – b 032 w 031", False),
         ]
     },
     {
         "text": "Тип QR-коду для HUB Hybrid (Fibra):",
         "options": [
-            ("HUB_F – b2800 w1800", True),
-            ("HUB_F – b1012 w1011", False),
-            ("HUB_F – b1032 w1031", False),
-            ("HUB_F – b1082 w1081", False),
+            ("HUB_F – b 2800 w 1800", True),
+            ("HUB_F – b 1012 w 1011", False),
+            ("HUB_F – b 1800 w 2800", False),
+            ("HUB_F – b 1082 w 1081", False),
         ]
     },
     {
         "text": "Який правильний QR-код для Button?",
         "options": [
-            ("BTN – w0c1 b0c2", True),
-            ("BTN – b141 w142", False),
-            ("BTN – b451 w452", False),
-            ("BTN – b1600 w2600", False),
+            ("BTN – w 0c1 b 0c2", True),
+            ("BTN – b 141 w 142", False),
+            ("BTN – b 451 w 452", False),
+            ("BTN – b 1600 w 2600", False),
         ]
     },
     {
         "text": "Який правильний QR-код для SpaceControl?",
         "options": [
-            ("SC – b1a00 w2a00", False),
-            ("SC – b071 w072", False),
-            ("SC – b141 w142", False),
-            ("SC – w0b1 b0b2", True),
+            ("SC – b 1a00 w 2a00", False),
+            ("SC – b 071 w 072", False),
+            ("SC – b 141 w 142", False),
+            ("SC – w 0b1 b 0b2", True),
         ]
     },
     {
         "text": "Який правильний QR-код для Double Button?",
         "options": [
-            ("DB – b191 w192", False),
-            ("DB – b041 w042", False),
-            ("DB – w421 b422", True),
-            ("DB – b421 w422", False),
+            ("DB – b 191 w 192", False),
+            ("DB – b 041 w 042", False),
+            ("DB – w 421 b 422", True),
+            ("DB – b 421 w 422", False),
         ]
     },
 ]
@@ -1285,91 +1285,91 @@ hard_questions += [
     {
         "text": "Який правильний QR-код для GlassProtect?",
         "options": [
-            ("GP – b1e1 w1e2", False),
-            ("GP – b421 w422", False),
-            ("GP – b1600 w2600", False),
-            ("GP – w041 b042", True),
+            ("GP – b 1e1 w 1e2", False),
+            ("GP – b 421 w 422", False),
+            ("GP – b 1600 w 2600", False),
+            ("GP – w 041 b 042", True),
         ]
     },
     {
         "text": "Який правильний QR-код для LeaksProtect?",
         "options": [
-            ("LP – b041 w042", False),
-            ("LP – b152 w151", False),
-            ("LP – b051 w052", False),
-            ("LP – w051 b052", True),
+            ("LP – b 041 w 042", False),
+            ("LP – b 152 w 151", False),
+            ("LP – b 051 w 052", False),
+            ("LP – w 051 b 052", True),
         ]
     },
     {
         "text": "Який правильний QR-код для Socket?",
         "options": [
-            ("SKT – w1e1 b1e2", True),
-            ("SKT – b0b1 w0b2", False),
-            ("SKT – b041 w042", False),
-            ("SKT – b1e1 w1e2", False),
+            ("SKT – w 1e1 b 1e2", True),
+            ("SKT – b 0b1 w 0b2", False),
+            ("SKT – b 041 w 042", False),
+            ("SKT – b 1e1 w 1e2", False),
         ]
     },
     {
         "text": "Який правильний QR-код для Keypad Combi?",
         "options": [
-            ("KPC – b0b1 w0b2", False),
-            ("KPC – b071 w072", False),
-            ("KPC – b041 w042", False),
-            ("KPC – w431 b432", True),
+            ("KPC – b 0b1 w 0b2", False),
+            ("KPC – b 071 w 072", False),
+            ("KPC – b 041 w 042", False),
+            ("KPC – w 431 b 432", True),
         ]
     },
     {
         "text": "Який правильний QR-код для VHF Bridge?",
         "options": [
-            ("VHF – b141 w142", False),
-            ("VHF – b451 w452", False),
-            ("VHF – w451 b452", True),
-            ("VHF – b0b1 w0b2", False),
+            ("VHF – b 141 w 142", False),
+            ("VHF – b 451 w 452", False),
+            ("VHF – w 451 b 452", True),
+            ("VHF – b 0b1 w 0b2", False),
         ]
     },
     {
         "text": "Який правильний QR-код для MultiTransmitter?",
         "options": [
-            ("MT – b1200 w2200", False),
-            ("MT – b1100 w2100", False),
-            ("MT – b191 w192", False),
-            ("MT – w1c1 b1c2", True),
+            ("MTR – b 1200 w 2200", False),
+            ("MTR – b 1c1 w 1c2", False),
+            ("MTR – b 191 w 192", False),
+            ("MTR – w 1c1 b 1c2", True),
         ]
     },
     {
         "text": "Який правильний QR-код для KPP.001.MBR001v12?",
         "options": [
-            ("KPP – b141 w142", False),
-            ("KPP – b1e1 w1e2", False),
-            ("KPP – b071 w072", False),
-            ("KPP – w191 b192", True),
+            ("KPP – b 141 w 142", False),
+            ("KPP – b 1e1 w 1e2", False),
+            ("KPP – b 071 w 072", False),
+            ("KPP – w 191 b 192", True),
         ]
     },
     {
         "text": "Який правильний QR-код для ReX?",
         "options": [
-            ("RX – b071 w072", False),
-            ("RX – b1600 w2600", False),
-            ("RX – w071 b072", True),
-            ("RX – b431 w432", False),
+            ("RЕX – b 071 w 072", False),
+            ("RЕX – b 461 w 462", False),
+            ("RЕX – w 071 b 072", True),
+            ("RЕX – b 431 w 432", False),
         ]
     },
     {
         "text": "Який правильний QR-код для HB2.MBR_4G?",
         "options": [
-            ("HB2 – b051 w052", False),
-            ("HB2 – b071 w072", False),
-            ("HB2 – b1600 w2600", False),
-            ("HB2 – w1a00 b2a00", True),
+            ("HB2 – b 1051 w 1052", False),
+            ("HB2 – b 1071 w 1072", False),
+            ("HB2 – b 1600 w 2600", False),
+            ("HB2 – w 1a00 b 2a00", True),
         ]
     },
     {
         "text": "Який правильний QR-код для StreetSiren?",
         "options": [
-            ("SSN – w141 b142", True),
-            ("SSN – b0c1 w0c2", False),
-            ("SSN – b421 w422", False),
-            ("SSN – b1e1 w1e2", False),
+            ("SS – w 141 b 142", True),
+            ("SS – b 0c1 w 0c2", False),
+            ("SS – b 421 w 422", False),
+            ("SS – b 1e1 w 1e2", False),
         ]
     },
 ]
@@ -1377,37 +1377,37 @@ hard_questions += [
     {
         "text": "Який правильний QR-код для HUB_07?",
         "options": [
-            ("HUB07 – b1e1 w1e2", False),
-            ("HUB07 – w1100 b2100", True),
-            ("HUB07 – b1a00 w2a00", False),
-            ("HUB07 – b0b1 w0b2", False),
+            ("HUB07 – b 11e1 w 11e2", False),
+            ("HUB07 – w 1100 b 2100", True),
+            ("HUB07 – b 1a00 w 2a00", False),
+            ("HUB07 – b 10b1 w 10b2", False),
         ]
     },
     {
         "text": "Який правильний QR-код для HUB2 MBR?",
         "options": [
-            ("HUB2 – b191 w192", False),
-            ("HUB2 – b1500 w2500", False),
-            ("HUB2 – w1500 b2500", True),
-            ("HUB2 – b0c1 w0c2", False),
+            ("HUB2 – b 1191 w1192", False),
+            ("HUB2 – b 1500 w 2500", False),
+            ("HUB2 – w 1500 b 2500", True),
+            ("HUB2 – b 010c1 w 010c2", False),
         ]
     },
     {
         "text": "Який правильний QR-код для HUB_Plus_MBR?",
         "options": [
-            ("HUBP – b451 w452", False),
-            ("HUBP – w1200 b2200", True),
-            ("HUBP – b0b1 w0b2", False),
-            ("HUBP – b1a00 w2a00", False),
+            ("HUBP – b 1451 w 1452", False),
+            ("HUBP – w 1200 b 2200", True),
+            ("HUBP – b 01b1 w 01b2", False),
+            ("HUBP – b 1a00 w 2a00", False),
         ]
     },
     {
         "text": "Який правильний QR-код для Hub 2 Plus?",
         "options": [
-            ("H2P – w1600 b2600", True),
-            ("H2P – b041 w042", False),
-            ("H2P – b051 w052", False),
-            ("H2P – b1100 w2100", False),
+            ("H2P – w 1600 b 2600", True),
+            ("H2P – b 1041 w 1042", False),
+            ("H2P – b 1051 w 1052", False),
+            ("H2P – b 1100 w 2100", False),
         ]
     },
 ]
