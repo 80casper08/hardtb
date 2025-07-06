@@ -415,7 +415,7 @@ general_questions += [
         "text": "21) Лінійка пристроїв Ajax включає:",
         "options": [
             ("Провідні", True),
-            ("Првцюючі по WI-FI", False),
+            ("Працюючі по WI-FI", False),
             ("Безпроводні", True),
             ("Працюючі по Bluetooth ", False)
         ]
