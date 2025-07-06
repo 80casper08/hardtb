@@ -796,7 +796,7 @@ general_questions += [
     {
         "text": "63) SS — це:",
         "options": [
-            ("Сирена вулина", True),
+            ("Сирена вулична", True),
             ("Домашня сирена", False),
             ("Space Control", False),
             ("HUB", False)
