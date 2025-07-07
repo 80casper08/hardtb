@@ -45,10 +45,10 @@ class QuizState(StatesGroup):
     selected_options = State()
 
 sections = {
-    "🦺 ОП": op_questions,
+    "🪺 ОП": op_questions,
     "📚 Загальні": general_questions,
     "⚙️ LEAN": lean_questions,
-    "🎲 QR": qr_questions,
+    "🟞 QR": qr_questions,
     "💪 Hard Test": hard_questions,
 }
 
@@ -177,20 +177,7 @@ async def toggle_option(callback: CallbackQuery, state: FSMContext):
     else:
         selected.add(index)
     await state.update_data(temp_selected=selected)
-
-    question = sections[data["category"]][data["question_index"]]
-    options = list(enumerate(question["options"]))
-    random.seed(data["question_index"])
-    random.shuffle(options)
-
-    buttons = []
-    for i, (label, _) in options:
-        prefix = "✅ " if i in selected else "▫️ "
-        buttons.append([InlineKeyboardButton(text=prefix + label, callback_data=f"opt_{i}")])
-    buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data="confirm")])
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-
-    await callback.message.edit_reply_markup(reply_markup=keyboard)
+    await send_question(callback, state)
 
 @dp.callback_query(F.data == "confirm")
 async def confirm_answer(callback: CallbackQuery, state: FSMContext):
