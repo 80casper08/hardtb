@@ -17,7 +17,7 @@ TOKEN = os.getenv("TOKEN")
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
-ADMIN_ID = 710633503
+ADMIN_ID = 710633503  # заміни на свій ID
 
 # Flask сервер
 app = Flask(__name__)
