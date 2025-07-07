@@ -15,17 +15,13 @@ from hard_questions_extra import hard_questions as hard_questions_extra
 
 hard_questions += hard_questions_extra
 
-
-# Завантаження токена
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
-
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
 ADMIN_ID = 710633503
 
-# Flask для Render
 app = Flask(__name__)
 
 @app.route("/")
@@ -137,11 +133,10 @@ async def send_question(message_or_callback, state: FSMContext):
         else:
             await message_or_callback.answer_photo(types.FSInputFile(image_path))
             await message_or_callback.answer(question["text"], reply_markup=keyboard)
-        else:
-    # Завжди надсилати нове повідомлення
-            if isinstance(message_or_callback, CallbackQuery):
+    else:
+        if isinstance(message_or_callback, CallbackQuery):
             await message_or_callback.message.answer(question["text"], reply_markup=keyboard)
-     else:
+        else:
             await message_or_callback.answer(question["text"], reply_markup=keyboard)
 
 @dp.callback_query(F.data.startswith("opt_"))
@@ -193,8 +188,8 @@ async def show_details(callback: CallbackQuery, state: FSMContext):
             text += f"{mark} {label}\n"
         selected_text = [item["options"][i][0] for i in item["selected"]] if item["selected"] else ["—"]
         correct_text = [item["options"][i][0] for i in item["correct"]]
-        text += f"\n_\u0422воя відповідь:_ {', '.join(selected_text)}"
-        text += f"\n_\u041fравильна відповідь:_ {', '.join(correct_text)}"
+        text += f"\n_Твоя відповідь:_ {', '.join(selected_text)}"
+        text += f"\n_Правильна відповідь:_ {', '.join(correct_text)}"
         await callback.message.answer(text, parse_mode="Markdown")
 
 @dp.message(F.text == "/start")
@@ -206,3 +201,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
