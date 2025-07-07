@@ -1428,3 +1428,16 @@ qr_questions += [
         ]
     },
 ]
+hard_questions = [
+    {
+        "text": "Що не вистачає на платі Keypad?",
+        "image": "images/keypad_missing.jpg",
+        "options": [
+            ("Світлодіод", True),
+            ("Холдер '+'", True),
+            ("Холдер '-'", True),
+            ("Усе на місці", False)
+        ]
+    },
+    ...
+]
