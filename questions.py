@@ -1438,6 +1438,17 @@ hard_questions = [
             ("Холдер '-'", True),
             ("Усе на місці", False)
         ]
-    },
-    ...
+    }
+]
+hard_questions += [
+    {
+        "text": "Яких елементів не вистачає на платі StreetSiren?",
+        "image": "images/streetsiren_missing.png",
+        "options": [
+            ("Антена", True),
+            ("Кнопка", True),
+            ("Кварцовий резонатор", True),
+            ("Усе на місці", False)
+        ]
+    }
 ]
