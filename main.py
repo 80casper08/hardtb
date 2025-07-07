@@ -9,7 +9,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQu
 from flask import Flask
 from threading import Thread
 from dotenv import load_dotenv
-from questions import op_questions, general_questions, lean_questions, hard_questions
+from questions import op_questions, general_questions, lean_questions, qr_questions
 
 # Завантаження токена
 load_dotenv()
@@ -48,7 +48,7 @@ sections = {
     "🦺 ОП": op_questions,
     "📚 Загальні": general_questions,
     "⚙️ LEAN": lean_questions,
-    "💪 Hard Test": hard_questions,
+    "💪QR": qr_questions,
 }
 
 def main_keyboard():
