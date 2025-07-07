@@ -1024,16 +1024,6 @@ lean_questions = [
 
 hard_questions = [
     {
-        "text": "Що не вистачає на платі Keypad?",
-        "image": "images/keypad1.jpg",
-        "options": [
-            ("Світлодіод", True),
-            ("Холдер '+'", True),
-            ("Холдер '-'", True),
-            ("Усе на місці", False)
-        ]
-    },
-    {
         "text": "Який правильний QR-код для DoorProtect?",
         "options": [
             ("DP – b 032 w 031", False),
