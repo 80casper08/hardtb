@@ -11,18 +11,17 @@ from threading import Thread
 from dotenv import load_dotenv
 from questions import op_questions, general_questions, lean_questions, qr_questions, hard_questions
 
+# Завантаження токена
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
+# 🔐 Вкажи свій Telegram ID
 ADMIN_ID = 710633503
 
-if not os.path.exists("logs.txt"):
-    with open("logs.txt", "w", encoding="utf-8") as f:
-        f.write("FullName | Username | Дія\n")
-
+# Flask сервер для Render
 app = Flask(__name__)
 
 @app.route("/")
@@ -41,10 +40,10 @@ class QuizState(StatesGroup):
     selected_options = State()
 
 sections = {
-    "🥮 ОП": op_questions,
+    "🐕‍🦺 ОП": op_questions,
     "📚 Загальні": general_questions,
     "⚙️ LEAN": lean_questions,
-    "🗾 QR": qr_questions,
+    "🧾 QR": qr_questions,
     "💪 Hard Test": hard_questions,
 }
 
@@ -78,7 +77,7 @@ async def start_quiz(message: types.Message, state: FSMContext):
 async def send_question(message_or_callback, state: FSMContext):
     data = await state.get_data()
     questions = sections[data["category"]]
-    index = data.get("question_index", 0)
+    index = data["question_index"]
 
     if index >= len(questions):
         correct = 0
@@ -115,15 +114,24 @@ async def send_question(message_or_callback, state: FSMContext):
             f"🏆 *Оцінка:* {grade}"
         )
 
+        full_name = message_or_callback.from_user.full_name
+        username = message_or_callback.from_user.username or "немає"
+        category = data["category"]
+
+        with open("logs.txt", "a", encoding="utf-8") as f:
+            f.write(f"{full_name} | @{username} | Завершив тест {category} з результатом {correct}/{len(questions)} ({percent}%)\n")
+
+        try:
+            await bot.send_message(ADMIN_ID, f"✅ {full_name} (@{username}) завершив тест {category} з результатом {correct}/{len(questions)} ({percent}%)")
+        except:
+            pass
+
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="🔁 Пройти ще раз", callback_data="restart")],
             [InlineKeyboardButton(text="📋 Детальна інформація", callback_data="details")]
         ])
 
-        if isinstance(message_or_callback, CallbackQuery):
-            await message_or_callback.message.answer(result, reply_markup=keyboard, parse_mode="Markdown")
-        else:
-            await message_or_callback.answer(result, reply_markup=keyboard, parse_mode="Markdown")
+        await message_or_callback.answer(result, reply_markup=keyboard, parse_mode="Markdown")
         return
 
     question = questions[index]
@@ -135,18 +143,21 @@ async def send_question(message_or_callback, state: FSMContext):
     selected = data.get("temp_selected", set())
     buttons = []
     for i, (label, _) in options:
-        prefix = "✅ " if i in selected else "◻️ "
+        prefix = "✅ " if i in selected else "▫️ "
         buttons.append([InlineKeyboardButton(text=prefix + label, callback_data=f"opt_{i}")])
     buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data="confirm")])
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
-    await state.update_data(options_mapping={i: label for i, (label, _) in options})
-
     if "image" in question:
         image_path = question["image"]
         if isinstance(message_or_callback, CallbackQuery):
-            await message_or_callback.message.answer_photo(types.FSInputFile(image_path))
-            await message_or_callback.message.answer(text, reply_markup=keyboard)
+            await message_or_callback.message.delete()
+            await bot.send_photo(
+                chat_id=message_or_callback.from_user.id,
+                photo=types.FSInputFile(image_path),
+                caption=text,
+                reply_markup=keyboard
+            )
         else:
             await message_or_callback.answer_photo(types.FSInputFile(image_path))
             await message_or_callback.answer(text, reply_markup=keyboard)
@@ -174,10 +185,11 @@ async def confirm_answer(callback: CallbackQuery, state: FSMContext):
     selected = data.get("temp_selected", set())
     selected_options = data.get("selected_options", [])
     selected_options.append(list(selected))
-    await state.update_data(selected_options=selected_options, temp_selected=set())
-
-    index = data.get("question_index", 0) + 1
-    await state.update_data(question_index=index)
+    await state.update_data(
+        selected_options=selected_options,
+        question_index=data["question_index"] + 1,
+        temp_selected=set()
+    )
     await send_question(callback, state)
 
 @dp.callback_query(F.data == "details")
@@ -191,12 +203,12 @@ async def show_details(callback: CallbackQuery, state: FSMContext):
     for item in wrongs:
         text = f"❌ *{item['question']}*\n"
         for idx, (opt_text, _) in enumerate(item["options"]):
-            mark = "☑️" if idx in item["selected"] else "⚪️"
+            mark = "☑️" if idx in item["selected"] else "🔘"
             text += f"{mark} {opt_text}\n"
         selected_text = [item["options"][i][0] for i in item["selected"]] if item["selected"] else ["—"]
         correct_text = [item["options"][i][0] for i in item["correct"]]
-        text += f"\n_\u0422\u0432\u043e\u044f \u0432\u0456\u0434\u043f\u043e\u0432\u0456\u0434\u044c:_ {', '.join(selected_text)}"
-        text += f"\n_\u041f\u0440\u0430\u0432\u0438\u043b\u044c\u043d\u0430 \u0432\u0456\u0434\u043f\u043e\u0432\u0456\u0434\u044c:_ {', '.join(correct_text)}"
+        text += f"\n_Твоя відповідь:_ {', '.join(selected_text)}"
+        text += f"\n_Правильна відповідь:_ {', '.join(correct_text)}"
         await callback.message.answer(text, parse_mode="Markdown")
 
 @dp.callback_query(F.data == "restart")
