@@ -18,8 +18,7 @@ TOKEN = os.getenv("TOKEN")
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
-ADMIN_ID = 710633503
-
+# Flask сервер для Render
 app = Flask(__name__)
 
 @app.route("/")
@@ -32,38 +31,37 @@ def ping():
 
 Thread(target=lambda: app.run(host="0.0.0.0", port=8080)).start()
 
+# Стани
 class QuizState(StatesGroup):
     category = State()
     question_index = State()
     selected_options = State()
 
+# Розділи
 sections = {
-    "🥮 ОП": op_questions,
+    "🦮 ОП": op_questions,
     "📚 Загальні": general_questions,
     "⚙️ LEAN": lean_questions,
-    "🗾 QR": qr_questions,
+    "🗞 QR": qr_questions,
     "💪 Hard Test": hard_questions,
 }
 
 def main_keyboard():
     buttons = [types.KeyboardButton(text=section) for section in sections]
     return types.ReplyKeyboardMarkup(
-        keyboard=[[button] for button in buttons], resize_keyboard=True
+        keyboard=[[button] for button in buttons],
+        resize_keyboard=True
     )
 
+# Старт тесту
 @dp.message(F.text.in_(sections.keys()))
 async def start_quiz(message: types.Message, state: FSMContext):
     category = message.text
     await state.set_state(QuizState.category)
-    await state.update_data(
-        category=category,
-        question_index=0,
-        selected_options=[],
-        wrong_answers=[],
-        temp_selected=set()  # ДОДАНО
-    )
+    await state.update_data(category=category, question_index=0, selected_options=[], wrong_answers=[])
     await send_question(message, state)
 
+# Надсилання питання
 async def send_question(message_or_callback, state: FSMContext):
     data = await state.get_data()
     questions = sections[data["category"]]
@@ -85,6 +83,8 @@ async def send_question(message_or_callback, state: FSMContext):
                     "correct": list(correct_answers)
                 })
 
+        await state.update_data(wrong_answers=wrongs)
+
         percent = round(correct / len(questions) * 100)
         grade = "❌ Погано"
         if percent >= 90:
@@ -100,8 +100,6 @@ async def send_question(message_or_callback, state: FSMContext):
             f"📈 *Успішність:* {percent}%\n"
             f"🏆 *Оцінка:* {grade}"
         )
-
-        await state.update_data(wrong_answers=wrongs)
 
         keyboard = InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="🔁 Пройти ще раз", callback_data="restart")],
@@ -127,17 +125,24 @@ async def send_question(message_or_callback, state: FSMContext):
     if "image" in question:
         image_path = question["image"]
         if isinstance(message_or_callback, CallbackQuery):
-            await message_or_callback.message.answer_photo(types.FSInputFile(image_path))
-            await message_or_callback.message.answer(question["text"], reply_markup=keyboard)
+            await message_or_callback.message.answer_photo(
+                types.FSInputFile(image_path),
+                caption=question["text"],
+                reply_markup=keyboard
+            )
         else:
-            await message_or_callback.answer_photo(types.FSInputFile(image_path))
-            await message_or_callback.answer(question["text"], reply_markup=keyboard)
+            await message_or_callback.answer_photo(
+                types.FSInputFile(image_path),
+                caption=question["text"],
+                reply_markup=keyboard
+            )
     else:
         if isinstance(message_or_callback, CallbackQuery):
             await message_or_callback.message.edit_text(question["text"], reply_markup=keyboard)
         else:
             await message_or_callback.answer(question["text"], reply_markup=keyboard)
 
+# Перемикання опцій
 @dp.callback_query(F.data.startswith("opt_"))
 async def toggle_option(callback: CallbackQuery, state: FSMContext):
     index = int(callback.data.split("_")[1])
@@ -146,15 +151,15 @@ async def toggle_option(callback: CallbackQuery, state: FSMContext):
     selected ^= {index}
     await state.update_data(temp_selected=selected)
 
-    shuffled = data.get("shuffled_options", [])
     buttons = []
-    for i, (label, _) in shuffled:
+    for i, (label, _) in data["shuffled_options"]:
         prefix = "✅ " if i in selected else "▫️ "
         buttons.append([InlineKeyboardButton(text=prefix + label, callback_data=f"opt_{i}")])
     buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data="confirm")])
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     await callback.message.edit_reply_markup(reply_markup=keyboard)
 
+# Підтвердження відповіді
 @dp.callback_query(F.data == "confirm")
 async def confirm_answer(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
@@ -168,11 +173,7 @@ async def confirm_answer(callback: CallbackQuery, state: FSMContext):
     )
     await send_question(callback, state)
 
-@dp.callback_query(F.data == "restart")
-async def restart_quiz(callback: CallbackQuery, state: FSMContext):
-    await state.clear()
-    await callback.message.answer("Вибери розділ для тесту:", reply_markup=main_keyboard())
-
+# Детальна інформація
 @dp.callback_query(F.data == "details")
 async def show_details(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
@@ -191,12 +192,21 @@ async def show_details(callback: CallbackQuery, state: FSMContext):
         text += f"\n_Правильна відповідь:_ {', '.join(correct_text)}"
         await callback.message.answer(text, parse_mode="Markdown")
 
+# Почати заново
+@dp.callback_query(F.data == "restart")
+async def restart_quiz(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
+    await callback.message.answer("Вибери розділ для тесту:", reply_markup=main_keyboard())
+
+# Старт
 @dp.message(F.text == "/start")
 async def cmd_start(message: types.Message):
     await message.answer("Вибери розділ для тесту:", reply_markup=main_keyboard())
 
+# Запуск
 async def main():
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
+
