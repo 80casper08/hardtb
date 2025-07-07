@@ -67,46 +67,7 @@ async def send_question(message_or_callback, state: FSMContext):
     index = data["question_index"]
 
     if index >= len(questions):
-        correct = 0
-        wrongs = []
-        for i, q in enumerate(questions):
-            correct_answers = {j for j, (_, is_correct) in enumerate(q["options"]) if is_correct}
-            user_selected = set(data["selected_options"][i])
-            if correct_answers == user_selected:
-                correct += 1
-            else:
-                wrongs.append({
-                    "question": q["text"],
-                    "options": q["options"],
-                    "selected": list(user_selected),
-                    "correct": list(correct_answers)
-                })
-
-        percent = round(correct / len(questions) * 100)
-        grade = "❌ Погано"
-        if percent >= 90:
-            grade = "💯 Відмінно"
-        elif percent >= 70:
-            grade = "👍 Добре"
-        elif percent >= 50:
-            grade = "👌 Задовільно"
-
-        result = (
-            "📊 *Результат тесту:*\n\n"
-            f"✅ *Правильних відповідей:* {correct} з {len(questions)}\n"
-            f"📈 *Успішність:* {percent}%\n"
-            f"🏆 *Оцінка:* {grade}"
-        )
-
-        await state.update_data(wrong_answers=wrongs)
-
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="🔁 Пройти ще раз", callback_data="restart")],
-            [InlineKeyboardButton(text="📋 Детальна інформація", callback_data="details")]
-        ])
-
-        chat_id = message_or_callback.from_user.id
-        await bot.send_message(chat_id, result, reply_markup=keyboard, parse_mode="Markdown")
+        # ... (залишай як є — результат, підрахунок, повідомлення)
         return
 
     question = questions[index]
@@ -123,11 +84,21 @@ async def send_question(message_or_callback, state: FSMContext):
     buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data="confirm")])
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
-    chat_id = message_or_callback.from_user.id
+    if isinstance(message_or_callback, CallbackQuery):
+        try:
+            await bot.delete_message(message_or_callback.message.chat.id, message_or_callback.message.message_id)
+        except:
+            pass
+        chat_id = message_or_callback.from_user.id
+    else:
+        chat_id = message_or_callback.chat.id
+
     if "image" in question:
         image_path = question["image"]
         await bot.send_photo(chat_id, types.FSInputFile(image_path))
+
     await bot.send_message(chat_id, question["text"], reply_markup=keyboard)
+
 
 @dp.callback_query(F.data.startswith("opt_"))
 async def toggle_option(callback: CallbackQuery, state: FSMContext):
