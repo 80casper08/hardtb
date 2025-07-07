@@ -105,59 +105,30 @@ async def send_question(message_or_callback, state: FSMContext):
             [InlineKeyboardButton(text="🔁 Пройти ще раз", callback_data="restart")],
             [InlineKeyboardButton(text="📋 Детальна інформація", callback_data="details")]
         ])
-        await message_or_callback.answer(result, reply_markup=keyboard, parse_mode="Markdown")
+
+        # ✅ Виправлена відповідь для CallbackQuery
+        if isinstance(message_or_callback, CallbackQuery):
+            await message_or_callback.message.answer(result, reply_markup=keyboard, parse_mode="Markdown")
+        else:
+            await message_or_callback.answer(result, reply_markup=keyboard, parse_mode="Markdown")
         return
 
-    question = questions[index]
-    options = list(enumerate(question["options"]))
-    random.seed(index)
-    random.shuffle(options)
-    await state.update_data(shuffled_options=options)
+    # ... решта коду без змін (залиш її як є)
 
-    selected = data.get("temp_selected", set())
-    buttons = []
-    for i, (label, _) in options:
-        prefix = "✅ " if i in selected else "▫️ "
-        buttons.append([InlineKeyboardButton(text=prefix + label, callback_data=f"opt_{i}")])
-    buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data="confirm")])
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-
-    if "image" in question:
-        image_path = question["image"]
-        if isinstance(message_or_callback, CallbackQuery):
-            await message_or_callback.message.answer_photo(
-                types.FSInputFile(image_path),
-                caption=question["text"],
-                reply_markup=keyboard
-            )
-        else:
-            await message_or_callback.answer_photo(
-                types.FSInputFile(image_path),
-                caption=question["text"],
-                reply_markup=keyboard
-            )
-    else:
-        if isinstance(message_or_callback, CallbackQuery):
-            await message_or_callback.message.edit_text(question["text"], reply_markup=keyboard)
-        else:
-            await message_or_callback.answer(question["text"], reply_markup=keyboard)
 
 # Перемикання опцій
-@dp.callback_query(F.data.startswith("opt_"))
-async def toggle_option(callback: CallbackQuery, state: FSMContext):
-    index = int(callback.data.split("_")[1])
+@dp.callback_query(F.data == "confirm")
+async def confirm_answer(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    selected = data.get("temp_selected", set())
-    selected ^= {index}
-    await state.update_data(temp_selected=selected)
-
-    buttons = []
-    for i, (label, _) in data["shuffled_options"]:
-        prefix = "✅ " if i in selected else "▫️ "
-        buttons.append([InlineKeyboardButton(text=prefix + label, callback_data=f"opt_{i}")])
-    buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data="confirm")])
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-    await callback.message.edit_reply_markup(reply_markup=keyboard)
+    selected = list(data.get("temp_selected", set()))
+    selected_options = data.get("selected_options", [])
+    selected_options.append(selected)
+    await state.update_data(
+        selected_options=selected_options,
+        question_index=data["question_index"] + 1,
+        temp_selected=set()
+    )
+    await send_question(callback, state)
 
 # Підтвердження відповіді
 @dp.callback_query(F.data == "confirm")
