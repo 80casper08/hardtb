@@ -48,7 +48,7 @@ sections = {
     "🦺 ОП": op_questions,
     "📚 Загальні": general_questions,
     "⚙️ LEAN": lean_questions,
-    "🟾 QR": qr_questions,
+    "🎲 QR": qr_questions,
     "💪 Hard Test": hard_questions,
 }
 
