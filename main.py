@@ -11,18 +11,22 @@ from threading import Thread
 from dotenv import load_dotenv
 from questions import op_questions, general_questions, lean_questions, hard_questions
 
+# Завантаження токена
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
+# 🔐 Вкажи свій Telegram ID
 ADMIN_ID = 710633503
 
+# Ініціалізація лог-файлу
 if not os.path.exists("logs.txt"):
     with open("logs.txt", "w", encoding="utf-8") as f:
         f.write("FullName | Username | Дія\n")
 
+# Flask сервер для Render
 app = Flask(__name__)
 
 @app.route("/")
@@ -131,16 +135,13 @@ async def send_question(message_or_callback, state: FSMContext):
             [InlineKeyboardButton(text="📋 Детальна інформація", callback_data="details")]
         ])
 
-        if isinstance(message_or_callback, CallbackQuery):
-            await message_or_callback.message.answer(result, reply_markup=keyboard, parse_mode="Markdown")
-        else:
-            await message_or_callback.answer(result, reply_markup=keyboard, parse_mode="Markdown")
-
+        await message_or_callback.answer(result, reply_markup=keyboard, parse_mode="Markdown")
         return
 
     question = questions[index]
     text = question["text"]
     options = list(enumerate(question["options"]))
+    random.seed(index)
     random.shuffle(options)
 
     selected = data.get("temp_selected", set())
@@ -149,12 +150,21 @@ async def send_question(message_or_callback, state: FSMContext):
         prefix = "✅ " if i in selected else "▫️ "
         buttons.append([InlineKeyboardButton(text=prefix + label, callback_data=f"opt_{i}")])
     buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data="confirm")])
-
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-    if isinstance(message_or_callback, CallbackQuery):
-        await message_or_callback.message.edit_text(text, reply_markup=keyboard)
+
+    if "image" in question:
+        image_path = question["image"]
+        if isinstance(message_or_callback, CallbackQuery):
+            await message_or_callback.message.answer_photo(types.FSInputFile(image_path))
+            await message_or_callback.message.answer(text, reply_markup=keyboard)
+        else:
+            await message_or_callback.answer_photo(types.FSInputFile(image_path))
+            await message_or_callback.answer(text, reply_markup=keyboard)
     else:
-        await message_or_callback.answer(text, reply_markup=keyboard)
+        if isinstance(message_or_callback, CallbackQuery):
+            await message_or_callback.message.edit_text(text, reply_markup=keyboard)
+        else:
+            await message_or_callback.answer(text, reply_markup=keyboard)
 
 @dp.callback_query(F.data.startswith("opt_"))
 async def toggle_option(callback: CallbackQuery, state: FSMContext):
@@ -166,7 +176,20 @@ async def toggle_option(callback: CallbackQuery, state: FSMContext):
     else:
         selected.add(index)
     await state.update_data(temp_selected=selected)
-    await send_question(callback, state)
+
+    question = sections[data["category"]][data["question_index"]]
+    options = list(enumerate(question["options"]))
+    random.seed(data["question_index"])
+    random.shuffle(options)
+
+    buttons = []
+    for i, (label, _) in options:
+        prefix = "✅ " if i in selected else "▫️ "
+        buttons.append([InlineKeyboardButton(text=prefix + label, callback_data=f"opt_{i}")])
+    buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data="confirm")])
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    await callback.message.edit_reply_markup(reply_markup=keyboard)
 
 @dp.callback_query(F.data == "confirm")
 async def confirm_answer(callback: CallbackQuery, state: FSMContext):
@@ -248,3 +271,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
