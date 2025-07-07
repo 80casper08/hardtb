@@ -1021,7 +1021,6 @@ lean_questions = [
         ]
     }
 ]
-import random
 
 hard_questions = [
     {
