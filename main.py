@@ -15,6 +15,7 @@ from hard_questions_extra import hard_questions as hard_questions_extra
 
 hard_questions += hard_questions_extra
 
+# Завантаження токена
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 bot = Bot(token=TOKEN)
@@ -22,23 +23,23 @@ dp = Dispatcher(storage=MemoryStorage())
 
 ADMIN_ID = 710633503
 
+# Flask для Render
 app = Flask(__name__)
-
 @app.route("/")
 def home():
     return "Bot is running!"
-
 @app.route("/ping")
 def ping():
     return "OK", 200
-
 Thread(target=lambda: app.run(host="0.0.0.0", port=8080)).start()
 
+# Стани FSM
 class QuizState(StatesGroup):
     category = State()
     question_index = State()
     selected_options = State()
 
+# Розділи
 sections = {
     "🧦 ОП": op_questions,
     "📚 Загальні": general_questions,
@@ -104,11 +105,7 @@ async def send_question(message_or_callback, state: FSMContext):
             [InlineKeyboardButton(text="🔁 Пройти ще раз", callback_data="restart")],
             [InlineKeyboardButton(text="📋 Детальна інформація", callback_data="details")]
         ])
-
-        if isinstance(message_or_callback, CallbackQuery):
-            await message_or_callback.message.answer(result, reply_markup=keyboard, parse_mode="Markdown")
-        else:
-            await message_or_callback.answer(result, reply_markup=keyboard, parse_mode="Markdown")
+        await bot.send_message(message_or_callback.from_user.id, result, reply_markup=keyboard, parse_mode="Markdown")
         return
 
     question = questions[index]
@@ -125,19 +122,13 @@ async def send_question(message_or_callback, state: FSMContext):
     buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data="confirm")])
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
+    user_id = message_or_callback.from_user.id
     if "image" in question:
         image_path = question["image"]
-        if isinstance(message_or_callback, CallbackQuery):
-            await message_or_callback.message.answer_photo(types.FSInputFile(image_path))
-            await message_or_callback.message.answer(question["text"], reply_markup=keyboard)
-        else:
-            await message_or_callback.answer_photo(types.FSInputFile(image_path))
-            await message_or_callback.answer(question["text"], reply_markup=keyboard)
+        await bot.send_photo(user_id, types.FSInputFile(image_path))
+        await bot.send_message(user_id, question["text"], reply_markup=keyboard)
     else:
-        if isinstance(message_or_callback, CallbackQuery):
-            await message_or_callback.message.answer(question["text"], reply_markup=keyboard)
-        else:
-            await message_or_callback.answer(question["text"], reply_markup=keyboard)
+        await bot.send_message(user_id, question["text"], reply_markup=keyboard)
 
 @dp.callback_query(F.data.startswith("opt_"))
 async def toggle_option(callback: CallbackQuery, state: FSMContext):
@@ -201,4 +192,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
