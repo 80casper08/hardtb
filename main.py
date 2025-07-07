@@ -137,11 +137,12 @@ async def send_question(message_or_callback, state: FSMContext):
         else:
             await message_or_callback.answer_photo(types.FSInputFile(image_path))
             await message_or_callback.answer(question["text"], reply_markup=keyboard)
+  else:
+    # Завжди надсилати нове повідомлення
+    if isinstance(message_or_callback, CallbackQuery):
+        await message_or_callback.message.answer(question["text"], reply_markup=keyboard)
     else:
-        if isinstance(message_or_callback, CallbackQuery):
-            await message_or_callback.message.edit_text(question["text"], reply_markup=keyboard)
-        else:
-            await message_or_callback.answer(question["text"], reply_markup=keyboard)
+        await message_or_callback.answer(question["text"], reply_markup=keyboard)
 
 @dp.callback_query(F.data.startswith("opt_"))
 async def toggle_option(callback: CallbackQuery, state: FSMContext):
