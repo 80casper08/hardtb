@@ -11,6 +11,7 @@ from threading import Thread
 from dotenv import load_dotenv
 from questions import op_questions, general_questions, lean_questions, qr_questions, hard_questions
 from hard_questions_extra import hard_questions as hard_questions_extra
+hard_questions += hard_questions_extra
 
 # Завантаження токена
 load_dotenv()
