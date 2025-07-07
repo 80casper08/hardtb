@@ -15,7 +15,6 @@ from hard_questions_extra import hard_questions as hard_questions_extra
 
 hard_questions += hard_questions_extra
 
-# Завантаження токена
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 bot = Bot(token=TOKEN)
@@ -23,23 +22,23 @@ dp = Dispatcher(storage=MemoryStorage())
 
 ADMIN_ID = 710633503
 
-# Flask для Render
 app = Flask(__name__)
+
 @app.route("/")
 def home():
     return "Bot is running!"
+
 @app.route("/ping")
 def ping():
     return "OK", 200
+
 Thread(target=lambda: app.run(host="0.0.0.0", port=8080)).start()
 
-# Стани FSM
 class QuizState(StatesGroup):
     category = State()
     question_index = State()
     selected_options = State()
 
-# Розділи
 sections = {
     "🧦 ОП": op_questions,
     "📚 Загальні": general_questions,
@@ -59,7 +58,7 @@ def main_keyboard():
 async def start_quiz(message: types.Message, state: FSMContext):
     category = message.text
     await state.set_state(QuizState.category)
-    await state.update_data(category=category, question_index=0, selected_options=[], wrong_answers=[])
+    await state.update_data(category=category, question_index=0, selected_options=[], wrong_answers=[], temp_selected=set())
     await send_question(message, state)
 
 async def send_question(message_or_callback, state: FSMContext):
@@ -105,7 +104,9 @@ async def send_question(message_or_callback, state: FSMContext):
             [InlineKeyboardButton(text="🔁 Пройти ще раз", callback_data="restart")],
             [InlineKeyboardButton(text="📋 Детальна інформація", callback_data="details")]
         ])
-        await bot.send_message(message_or_callback.from_user.id, result, reply_markup=keyboard, parse_mode="Markdown")
+
+        chat_id = message_or_callback.from_user.id
+        await bot.send_message(chat_id, result, reply_markup=keyboard, parse_mode="Markdown")
         return
 
     question = questions[index]
@@ -122,13 +123,11 @@ async def send_question(message_or_callback, state: FSMContext):
     buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data="confirm")])
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
-    user_id = message_or_callback.from_user.id
+    chat_id = message_or_callback.from_user.id
     if "image" in question:
         image_path = question["image"]
-        await bot.send_photo(user_id, types.FSInputFile(image_path))
-        await bot.send_message(user_id, question["text"], reply_markup=keyboard)
-    else:
-        await bot.send_message(user_id, question["text"], reply_markup=keyboard)
+        await bot.send_photo(chat_id, types.FSInputFile(image_path))
+    await bot.send_message(chat_id, question["text"], reply_markup=keyboard)
 
 @dp.callback_query(F.data.startswith("opt_"))
 async def toggle_option(callback: CallbackQuery, state: FSMContext):
