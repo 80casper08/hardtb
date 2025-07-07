@@ -1022,7 +1022,7 @@ lean_questions = [
     }
 ]
 
-hard_questions = [
+qr_questions = [
     {
         "text": "Який правильний QR-код для DoorProtect?",
         "options": [
@@ -1114,7 +1114,7 @@ hard_questions = [
         ]
     },
 ]
-hard_questions += [
+qr_questions += [
     {
         "text": "Який правильний QR-код для DPPF?",
         "options": [
@@ -1206,7 +1206,7 @@ hard_questions += [
         ]
     },
 ]
-hard_questions += [
+qr_questions += [
     {
         "text": "Тип QR-коду для Transmitter:",
         "options": [
@@ -1298,7 +1298,7 @@ hard_questions += [
         ]
     },
 ]
-hard_questions += [
+qr_questions += [
     {
         "text": "Який правильний QR-код для GlassProtect?",
         "options": [
@@ -1390,7 +1390,7 @@ hard_questions += [
         ]
     },
 ]
-hard_questions += [
+qr_questions += [
     {
         "text": "Який правильний QR-код для HUB_07?",
         "options": [
