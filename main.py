@@ -18,10 +18,8 @@ TOKEN = os.getenv("TOKEN")
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
 
-# 🔐 Вкажи свій Telegram ID
 ADMIN_ID = 710633503
 
-# Flask сервер для Render
 app = Flask(__name__)
 
 @app.route("/")
@@ -40,25 +38,30 @@ class QuizState(StatesGroup):
     selected_options = State()
 
 sections = {
-    "🦮 ОП": op_questions,
+    "🥮 ОП": op_questions,
     "📚 Загальні": general_questions,
     "⚙️ LEAN": lean_questions,
-    "🗞 QR": qr_questions,
+    "🗾 QR": qr_questions,
     "💪 Hard Test": hard_questions,
 }
 
 def main_keyboard():
     buttons = [types.KeyboardButton(text=section) for section in sections]
     return types.ReplyKeyboardMarkup(
-        keyboard=[[button] for button in buttons],
-        resize_keyboard=True
+        keyboard=[[button] for button in buttons], resize_keyboard=True
     )
 
 @dp.message(F.text.in_(sections.keys()))
 async def start_quiz(message: types.Message, state: FSMContext):
     category = message.text
     await state.set_state(QuizState.category)
-    await state.update_data(category=category, question_index=0, selected_options=[], wrong_answers=[])
+    await state.update_data(
+        category=category,
+        question_index=0,
+        selected_options=[],
+        wrong_answers=[],
+        temp_selected=set()  # ДОДАНО
+    )
     await send_question(message, state)
 
 async def send_question(message_or_callback, state: FSMContext):
@@ -143,8 +146,9 @@ async def toggle_option(callback: CallbackQuery, state: FSMContext):
     selected ^= {index}
     await state.update_data(temp_selected=selected)
 
+    shuffled = data.get("shuffled_options", [])
     buttons = []
-    for i, (label, _) in data["shuffled_options"]:
+    for i, (label, _) in shuffled:
         prefix = "✅ " if i in selected else "▫️ "
         buttons.append([InlineKeyboardButton(text=prefix + label, callback_data=f"opt_{i}")])
     buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data="confirm")])
