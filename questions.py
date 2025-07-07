@@ -1024,9 +1024,9 @@ lean_questions = [
 
 hard_questions = [
     {
-    "text": "Що не вистачає на платі Keypad?",
-    "image": "images/keypad1.jpg",
-    "options": [
+       "text": "Що не вистачає на платі Keypad?",
+       "image": "images/keypad1.jpg",
+       "options": [
         ("Світлодіод", True),
         ("Холдер '+'", True),
         ("Холдер '-'", True),
