@@ -137,6 +137,7 @@ async def send_question(message_or_callback, state: FSMContext):
     options = list(enumerate(question["options"]))
     random.seed(index)
     random.shuffle(options)
+    await state.update_data(shuffled_options=options)
 
     selected = data.get("temp_selected", set())
     buttons = []
@@ -159,6 +160,40 @@ async def send_question(message_or_callback, state: FSMContext):
             await message_or_callback.message.edit_text(text, reply_markup=keyboard)
         else:
             await message_or_callback.answer(text, reply_markup=keyboard)
+
+@dp.callback_query(F.data.startswith("opt_"))
+async def toggle_option(callback: CallbackQuery, state: FSMContext):
+    index = int(callback.data.split("_")[1])
+    data = await state.get_data()
+    selected = data.get("temp_selected", set())
+    if index in selected:
+        selected.remove(index)
+    else:
+        selected.add(index)
+    await state.update_data(temp_selected=selected)
+
+    options = data["shuffled_options"]
+    buttons = []
+    for i, (label, _) in options:
+        prefix = "✅ " if i in selected else "▫️ "
+        buttons.append([InlineKeyboardButton(text=prefix + label, callback_data=f"opt_{i}")])
+    buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data="confirm")])
+    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
+
+    await callback.message.edit_reply_markup(reply_markup=keyboard)
+
+@dp.callback_query(F.data == "confirm")
+async def confirm_answer(callback: CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    selected = list(data.get("temp_selected", set()))
+    selected_options = data.get("selected_options", [])
+    selected_options.append(selected)
+    await state.update_data(
+        selected_options=selected_options,
+        question_index=data["question_index"] + 1,
+        temp_selected=set()
+    )
+    await send_question(callback, state)
 
 @dp.callback_query(F.data == "restart")
 async def restart_quiz(callback: CallbackQuery, state: FSMContext):
@@ -193,5 +228,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-
 
