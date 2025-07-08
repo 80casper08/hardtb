@@ -35,7 +35,7 @@ class QuizState(StatesGroup):
     selected_options = State()
 
 sections = {
-    "🖲 ОП": op_questions,
+    "🪪 ОП": op_questions,
     "📚 Загальні": general_questions,
     "⚙️ LEAN": lean_questions,
     "🔾 QR": qr_questions,
@@ -56,6 +56,18 @@ async def start_quiz(message: types.Message, state: FSMContext):
     category = message.text
     await state.set_state(QuizState.category)
     await state.update_data(category=category, question_index=0, selected_options=[], wrong_answers=[])
+
+    full_name = message.from_user.full_name
+    username = message.from_user.username or "немає"
+
+    with open("logs.txt", "a", encoding="utf-8") as f:
+        f.write(f"{full_name} | @{username} | Почав тест {category}\n")
+
+    try:
+        await bot.send_message(ADMIN_ID, f"👤 {full_name} (@{username}) почав тест {category}")
+    except:
+        pass
+
     await send_question(message, state)
 
 async def send_question(message_or_callback, state: FSMContext):
@@ -85,13 +97,11 @@ async def send_question(message_or_callback, state: FSMContext):
         elif percent >= 70: grade = "👍 Добре"
         elif percent >= 50: grade = "👌 Задовільно"
 
-        result = (
-            "📊 *Результат тесту:*
-\n\n"
-            f"✅ *Правильних відповідей:* {correct} з {len(questions)}\n"
-            f"📈 *Успішність:* {percent}%\n"
-            f"🏆 *Оцінка:* {grade}"
-        )
+        result = f"""📊 *Результат тесту:*
+
+✅ *Правильних відповідей:* {correct} з {len(questions)}
+📈 *Успішність:* {percent}%
+🏆 *Оцінка:* {grade}"""
 
         await state.update_data(wrong_answers=wrongs)
 
@@ -100,12 +110,7 @@ async def send_question(message_or_callback, state: FSMContext):
             [InlineKeyboardButton(text="📋 Детальна інформація", callback_data="details")]
         ])
 
-        chat_id = (
-            message_or_callback.from_user.id
-            if isinstance(message_or_callback, types.Message)
-            else message_or_callback.message.chat.id
-        )
-        await bot.send_message(chat_id, result, reply_markup=keyboard, parse_mode="Markdown")
+        await message_or_callback.answer(result, reply_markup=keyboard, parse_mode="Markdown")
         return
 
     question = questions[index]
