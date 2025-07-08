@@ -11,14 +11,15 @@ from threading import Thread
 from dotenv import load_dotenv
 from questions import op_questions, general_questions, lean_questions, qr_questions
 
-# Load token
+# Завантаження токена
 load_dotenv()
 TOKEN = os.getenv("token")
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
+
 ADMIN_ID = 710633503
 
-# Flask для Render
+# Flask сервер
 app = Flask(__name__)
 @app.route("/")
 def home():
@@ -28,41 +29,35 @@ def ping():
     return "OK", 200
 Thread(target=lambda: app.run(host="0.0.0.0", port=8080)).start()
 
-# Стани
 class QuizState(StatesGroup):
     category = State()
     question_index = State()
     selected_options = State()
 
-# Розділи
 sections = {
     "🪪 ОП": op_questions,
     "📚 Загальні": general_questions,
     "⚙️ LEAN": lean_questions,
-    "🔾 QR": qr_questions,
+    "🎲 QR": qr_questions,
 }
 
-# Головне меню
 def main_keyboard():
     return types.ReplyKeyboardMarkup(
         keyboard=[[types.KeyboardButton(text=section)] for section in sections],
         resize_keyboard=True
     )
 
-# Команда /start
 @dp.message(F.text == "/start")
 async def cmd_start(message: types.Message):
     await message.answer("Вибери розділ для тесту:", reply_markup=main_keyboard())
 
-# Старт тесту
 @dp.message(F.text.in_(sections.keys()))
 async def start_quiz(message: types.Message, state: FSMContext):
     category = message.text
     await state.set_state(QuizState.category)
-    await state.update_data(category=category, question_index=0, selected_options=[], wrong_answers=[], temp_selected=set())
+    await state.update_data(category=category, question_index=0, selected_options=[], wrong_answers=[])
     await send_question(message, state)
 
-# Надсилання питання
 async def send_question(message_or_callback, state: FSMContext):
     data = await state.get_data()
     questions = sections[data["category"]]
@@ -126,7 +121,6 @@ async def send_question(message_or_callback, state: FSMContext):
     else:
         await message_or_callback.answer(question["text"], reply_markup=keyboard)
 
-# Обробка вибору варіанту
 @dp.callback_query(F.data.startswith("opt_"))
 async def toggle_option(callback: CallbackQuery, state: FSMContext):
     index = int(callback.data.split("_")[1])
@@ -143,7 +137,6 @@ async def toggle_option(callback: CallbackQuery, state: FSMContext):
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     await callback.message.edit_reply_markup(reply_markup=keyboard)
 
-# Підтвердження відповіді
 @dp.callback_query(F.data == "confirm")
 async def confirm_answer(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
@@ -157,7 +150,6 @@ async def confirm_answer(callback: CallbackQuery, state: FSMContext):
     )
     await send_question(callback, state)
 
-# Детальна інформація
 @dp.callback_query(F.data == "details")
 async def show_details(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
@@ -176,16 +168,13 @@ async def show_details(callback: CallbackQuery, state: FSMContext):
         text += f"\n_Правильна відповідь:_ {', '.join(correct_text)}"
         await callback.message.answer(text, parse_mode="Markdown")
 
-# Перезапуск
 @dp.callback_query(F.data == "restart")
 async def restart_quiz(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.message.answer("Вибери розділ для тесту:", reply_markup=main_keyboard())
 
-# Запуск
 async def main():
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
-
