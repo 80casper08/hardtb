@@ -13,8 +13,8 @@ from questions import op_questions, general_questions, lean_questions, qr_questi
 
 # Load token
 load_dotenv()
-TOKEN = os.getenv("TOKEN")
-bot = Bot(token=TOKEN)
+TOKEN = os.getenv("token")
+bot = Bot(token=token)
 dp = Dispatcher(storage=MemoryStorage())
 
 ADMIN_ID = 710633503  # заміни на свій Telegram ID
