@@ -17,7 +17,7 @@ TOKEN = os.getenv("TOKEN")
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
-ADMIN_ID = 710633503  # заміни на свій ID
+ADMIN_ID = 710633503
 
 # Flask сервер
 app = Flask(__name__)
@@ -108,7 +108,10 @@ async def send_question(message_or_callback, state: FSMContext):
             [InlineKeyboardButton(text="📋 Детальна інформація", callback_data="details")]
         ])
 
-        await message_or_callback.answer(result, reply_markup=keyboard, parse_mode="Markdown")
+        if isinstance(message_or_callback, CallbackQuery):
+            await bot.send_message(message_or_callback.from_user.id, result, reply_markup=keyboard, parse_mode="Markdown")
+        else:
+            await message_or_callback.answer(result, reply_markup=keyboard, parse_mode="Markdown")
         return
 
     question = questions[index]
@@ -191,3 +194,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
