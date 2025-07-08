@@ -1,5 +1,3 @@
-
-
 import asyncio
 import os
 import random
@@ -55,6 +53,18 @@ async def start_quiz(message: types.Message, state: FSMContext):
     category = message.text
     await state.set_state(QuizState.category)
     await state.update_data(category=category, question_index=0, selected_options=[], wrong_answers=[])
+
+    full_name = message.from_user.full_name
+    username = message.from_user.username or "немає"
+
+    with open("logs.txt", "a", encoding="utf-8") as f:
+        f.write(f"{full_name} | @{username} | Почав тест {category}\n")
+
+    try:
+        await bot.send_message(ADMIN_ID, f"👤 {full_name} (@{username}) почав тест {category}")
+    except:
+        pass
+
     await send_question(message, state)
 
 async def send_question(message_or_callback, state: FSMContext):
@@ -115,19 +125,10 @@ async def send_question(message_or_callback, state: FSMContext):
     buttons.append([InlineKeyboardButton(text="✅ Підтвердити", callback_data="confirm")])
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
-    if "image" in question:
-        image_path = question["image"]
-        if isinstance(message_or_callback, CallbackQuery):
-            await message_or_callback.message.answer_photo(types.FSInputFile(image_path))
-            await message_or_callback.message.answer(question["text"], reply_markup=keyboard)
-        else:
-            await message_or_callback.answer_photo(types.FSInputFile(image_path))
-            await message_or_callback.answer(question["text"], reply_markup=keyboard)
+    if isinstance(message_or_callback, CallbackQuery):
+        await message_or_callback.message.edit_text(question["text"], reply_markup=keyboard)
     else:
-        if isinstance(message_or_callback, CallbackQuery):
-            await message_or_callback.message.edit_text(question["text"], reply_markup=keyboard)
-        else:
-            await message_or_callback.answer(question["text"], reply_markup=keyboard)
+        await message_or_callback.answer(question["text"], reply_markup=keyboard)
 
 @dp.callback_query(F.data.startswith("opt_"))
 async def toggle_option(callback: CallbackQuery, state: FSMContext):
@@ -190,3 +191,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
