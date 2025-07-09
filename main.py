@@ -41,9 +41,9 @@ class QuizState(StatesGroup):
     selected_options = State()
 
 sections = {
-    "🪺 ОП": op_questions,
-    "📚 Загальні": general_questions,
-    "⚙️ LEAN": lean_questions,
+    "👮ОП👮": op_questions,
+    "🎭Загальні🎭": general_questions,
+    "🗿LEAN🗿": lean_questions,
     "🎲QR🎲": qr_questions,
 }
 
